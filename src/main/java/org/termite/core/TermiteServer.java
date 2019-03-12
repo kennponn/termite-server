@@ -12,6 +12,8 @@ import java.util.Iterator;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.termite.http.Request;
+
 public class TermiteServer {
 	// 线程池
 	ExecutorService pool = Executors.newFixedThreadPool(50);
@@ -57,6 +59,7 @@ public class TermiteServer {
 	 */
 	@SuppressWarnings("unchecked")
 	public void listen() throws IOException {
+		
 		// 轮询访问selector
 		while (true) {
 			// 当注册的事件到达时，方法返回；否则,该方法会一直阻塞
@@ -64,6 +67,7 @@ public class TermiteServer {
 			// 获得selector中选中的项的迭代器，选中的项为注册的事件
 			Iterator ite = this.selector.selectedKeys().iterator();
 			while (ite.hasNext()) {
+				
 				SelectionKey key = (SelectionKey) ite.next();
 				// 删除已选的key,以防重复处理
 				ite.remove();
@@ -104,6 +108,7 @@ class ThreadHandlerChannel extends Thread {
 	@Override
 	public void run() {
 		// 服务器可读取消息:得到事件发生的Socket通道
+		
 		SocketChannel channel = (SocketChannel) key.channel();
 		// 创建读取的缓冲区
 		ByteBuffer buffer = ByteBuffer.allocate(1024);
@@ -117,7 +122,10 @@ class ThreadHandlerChannel extends Thread {
 				buffer.clear();
 			}
 			baos.close();
-			System.out.println("服务器当前处理线程：" + Thread.currentThread().getName() + " 服务端收到信息：" + baos.toString());
+			if(baos.size()!=0) {
+				Request req = new Request(baos.toString());}
+//			System.out.println("服务器当前处理线程：" + Thread.currentThread().getName() + " 服务端收到信息：" + baos.toString());
+			
 			byte[] content = baos.toByteArray();
 			ByteBuffer writeBuf = ByteBuffer.allocate(content.length);
 			writeBuf.put(content);
@@ -132,7 +140,7 @@ class ThreadHandlerChannel extends Thread {
 				key.selector().wakeup();
 			}
 		} catch (Exception e) {
-			System.out.println(e.getMessage());
+			e.printStackTrace();
 		}
 	}
 }
