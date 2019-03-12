@@ -9,16 +9,20 @@ public class Request {
 	public Request(String httpStr) {
 		// TODO Auto-generated constructor stub
 		headers.put("method", httpStr.substring(0,httpStr.indexOf('/')));
-		headers.put("protocol", httpStr.substring(httpStr.indexOf("HTTP"), httpStr.indexOf("Host")));
-		
+		headers.put("protocol", httpStr.substring(httpStr.indexOf("HTTP"), httpStr.indexOf("Host")).trim());
 		String [] headersData = httpStr.split("\n");
 		for(String tmp: headersData) {
-			if(tmp.indexOf("HTTP")!=-1) {
-				
+			if(tmp.indexOf("HTTP")==-1 && tmp.trim().length()!=0) {
+				headers.put(tmp.substring(0,tmp.indexOf(":")), tmp.substring(tmp.indexOf(":")+1).trim());
 			}
 		}
 		
-		System.out.println(headers.get("User-Agent"));
+		
+		for (String key : headers.keySet()) {
+			System.out.println(key+"---------"+headers.get(key));
+		}
+		
+		
 	}
 	
 	public String getHeader(String key) {

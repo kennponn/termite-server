@@ -13,6 +13,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.termite.http.Request;
+import org.termite.http.Response;
 
 public class TermiteServer {
 	// 线程池
@@ -57,18 +58,17 @@ public class TermiteServer {
 	 * 
 	 * @throws IOException
 	 */
-	@SuppressWarnings("unchecked")
 	public void listen() throws IOException {
-		
+
 		// 轮询访问selector
 		while (true) {
 			// 当注册的事件到达时，方法返回；否则,该方法会一直阻塞
 			selector.select();
 			// 获得selector中选中的项的迭代器，选中的项为注册的事件
-			Iterator ite = this.selector.selectedKeys().iterator();
+			Iterator<SelectionKey> ite = this.selector.selectedKeys().iterator();
 			while (ite.hasNext()) {
-				
-				SelectionKey key = (SelectionKey) ite.next();
+
+				SelectionKey key = ite.next();
 				// 删除已选的key,以防重复处理
 				ite.remove();
 				// 客户端请求连接事件
@@ -108,7 +108,7 @@ class ThreadHandlerChannel extends Thread {
 	@Override
 	public void run() {
 		// 服务器可读取消息:得到事件发生的Socket通道
-		
+
 		SocketChannel channel = (SocketChannel) key.channel();
 		// 创建读取的缓冲区
 		ByteBuffer buffer = ByteBuffer.allocate(1024);
@@ -122,14 +122,24 @@ class ThreadHandlerChannel extends Thread {
 				buffer.clear();
 			}
 			baos.close();
-			if(baos.size()!=0) {
-				Request req = new Request(baos.toString());}
+			if (baos.size() != 0) {
+				Request request = new Request(baos.toString());
+				Response response = new Response();
+			}
 //			System.out.println("服务器当前处理线程：" + Thread.currentThread().getName() + " 服务端收到信息：" + baos.toString());
-			
+
 			byte[] content = baos.toByteArray();
-			ByteBuffer writeBuf = ByteBuffer.allocate(content.length);
-			writeBuf.put(content);
-			writeBuf.flip();
+			 StringBuffer responseHeader = new StringBuffer();
+	 			responseHeader.append("HTTP/1.1 200 OK").append("\n");
+	 			responseHeader.append("Content-Type:text/html;charset=utf-8").append("\n");
+	 			responseHeader.append("\r\n\r\n");
+	 			responseHeader.append("<html><head><h1>termiteServer(轻量级web容器,只为termite-server打造,未来还有termate-browser(遵循自定义协议的浏览器))开工!<br>一款为企业量身打造的一站式Web服务(反爬虫,termite-web(轻量级web框架))<您现在所看到的任何信息均由termite-server响应</h1> Powered by TermiteCN</body></html>");
+
+		
+			ByteBuffer writeBuf = ByteBuffer.wrap(responseHeader.toString().getBytes("UTF-8"));
+			
+		
+			
 			channel.write(writeBuf);// 将消息回送给客户端
 			if (size == -1) {
 				// System.out.println("客户端断开。。。");
