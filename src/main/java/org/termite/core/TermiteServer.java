@@ -141,7 +141,8 @@ class ThreadHandlerChannel extends Thread {
 		
 			
 			channel.write(writeBuf);// 将消息回送给客户端
-			if (size == -1) {
+			System.out.println(size);
+			if (size == 0) {
 				// System.out.println("客户端断开。。。");
 				channel.close();
 			} else {
